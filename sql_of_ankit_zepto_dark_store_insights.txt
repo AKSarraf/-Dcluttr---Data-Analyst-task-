@@ -1,0 +1,51 @@
+WITH sales_data AS (
+    SELECT 
+        zs.Sales_Date AS Date,
+        zs.SKU_ID,
+        zs.SKU_Name,
+        zs.SKU_Category,
+        zs.City,
+        zs.Store_Name AS dark_store,
+        zs.Quantity AS qty_sold,
+        zm.GMV / NULLIF(zs.Quantity, 0) AS Sale_MRP,
+        AVG(zs.Quantity) OVER (
+            PARTITION BY zs.SKU_ID, zs.City, zs.Store_Name 
+            ORDER BY zs.Sales_Date 
+            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+        ) AS drr_7,
+        AVG(zs.Quantity) OVER (
+            PARTITION BY zs.SKU_ID, zs.City, zs.Store_Name
+            ORDER BY zs.Sales_Date 
+            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
+        ) AS drr_14,
+        SUM(zs.Quantity) OVER (
+            PARTITION BY zs.SKU_ID, zs.SKU_Name, Month(zs.Sales_Date)
+        ) AS month_to_date_sales
+    FROM zepto_sales AS zs
+    JOIN zepto_sales_meta_data AS zm
+    ON zs.SKU_ID = zm.SKU_ID
+)
+SELECT 
+    sd.Date,
+    sd.SKU_ID,
+    sd.SKU_Name,
+    sd.SKU_Category,
+    sd.City,
+    sd.dark_store,
+    SUM(sd.qty_sold) AS qty_sold,
+    SUM(sd.Sale_MRP * sd.qty_sold) / NULLIF(SUM(sd.qty_sold), 0) AS Sale_MRP,
+    AVG(sd.drr_7) AS avg_qty_sold_last_7_days,
+    AVG(sd.drr_14) AS drr_14,
+    SUM(zh.Total_Quantity) AS dark_store_inv_qty,
+    CASE 
+        WHEN AVG(sd.drr_14) > 0 
+        THEN SUM(zh.Total_Quantity) / NULLIF(AVG(sd.drr_14), 0) 
+        ELSE NULL 
+    END AS days_of_inventory_14,
+    MAX(sd.month_to_date_sales) AS month_to_date_sales
+FROM sales_data AS sd
+LEFT JOIN zepto_stock_on_hand AS zh
+    ON sd.SKU_ID = zh.SKU_ID 
+    AND sd.dark_store = zh.Store_Name
+    AND zh.Store_Type = 'RETAIL_STORE'
+GROUP BY sd.Date, sd.SKU_ID, sd.SKU_Name, sd.SKU_Category, sd.City, sd.dark_store, sd.month_to_date_sales;
