@@ -1,0 +1,46 @@
+ ,,,Derived tables (to be created),,,,
+zepto_sales,,,zepto_dark_store_insights,,,,
+Field,Description,,Field,Description,Aggregation,Unit,Display name
+date,Date of sales,,date,zepto_sales.date,NA,,Date
+sku_name,Name of the SKU,,sku_id,zepto_sales.sku_id,NA,,SKU Id
+sku_id,Id of the SKU,,sku,zepto_sku_map.sku where zepto_sales.sku_id = zepto_sku_map.sku_id,NA,,SKU name
+ean,EAN Number,,category,zepto_sku_map.category where zepto_sales.sku_id = zepto_sku_map.sku_id,NA,,Category
+vendor_id,Vendor Id,,platform_city,zepto_sales.city ,NA,,NA
+vendor_name,Vendor Name,,dark_store,zepto_sales.store_name,NA,,Dark store
+city,City Name,,qty_sold,zepto_sales.units_sold,sum,number,Items sold
+brand_name,Name of the brand,,sales_mrp,zepto_sales_meta_data.gmv / zepto_sales_meta_data.sales_quantity,sum,INR - number,Sales (MRP)
+manufacturer_id,Id of the Manufacturer,,drr_7,"average of last 7 day's qty_sold for each sku_id, city, and dark store",static (sum),decimal(1),DRR (7)
+manufacturer_name,Name of the Manufacturer,,drr_14,"average of last 14 day's qty_sold for each sku_id, city, and dark store",static (sum),decimal(1),DRR (14)
+store_name,Dark Store name. A city can have multiple dark stores.,,dark_store_inv_qty,stock_on_hand.quantity where store_type = RETAIL_STORE,static (sum),number,DS inventory
+sku_category,Category of SKU,,days_of_inventory_drr_14,{dark_store_inv_qty} / {drr_14},static,number,DOH (14 days)
+quantity,"Quantity of SKU sold in a given date, city, and dark store",,month_to_date_sales,"sales_mrp till the current date for a month for a given city, sku_id, and dark store",static (sum),INR - number,MTD sales
+"zepto_sales_meta_data (export of ""Sales_Overview"")",,,,,,,
+Field,Description,,,,,,
+date,Date of sales,,,,,,
+sku_number,Id of the SKU,,,,,,
+sku_name,Name of the SKU,,,,,,
+ean,EAN Number,,,,,,
+sku_category,Category of SKU,,,,,,
+sku_sub_category,Sub Category of SKU,,,,,,
+brand_name,Name of the brand,,,,,,
+manufacturer_name,Name of the Manufacturer,,,,,,
+manufacturer_id,Id of the Manufacturer,,,,,,
+city,City Name,,,,,,
+sales_quantity,Quantity of SKU sold in a given date and city,,,,,,
+gmv,Total value of SKU sold in a given date and city,,,,,,
+zepto_stock_on_hand,,,,,,,
+Field,Description,,,,,,
+date,Date,,,,,,
+city,City Name,,,,,,
+brand_name,Name of the brand,,,,,,
+vendor_id,Vendor Id,,,,,,
+vendor_name,Vendor Name,,,,,,
+manufacturer_id,Id of the Manufacturer,,,,,,
+manufacturer_name,Name of the Manufacturer,,,,,,
+store_name,Dark store or warehouse name. A City can have multiple dark stores or warehouses,,,,,,
+store_type,"Store type. If ""RETAIL_STORE"", then it's a dark store. If ""WAREHOUSE"", then it's a warehouse.",,,,,,
+sku_category,Category of SKU,,,,,,
+sku_name,Name of the SKU,,,,,,
+sku_id,Id of the SKU,,,,,,
+ean,EAN Number,,,,,,
+total_quantity,Quantity of inventory available for an SKU in a given city and store,,,,,,
